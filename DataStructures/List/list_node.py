@@ -1,8 +1,3 @@
-"""
-  Estructura que contiene la información a guardar en una lista encadenada
-"""
-
-
 def new_single_node(element):
     """ Estructura que contiene la información a guardar en una lista encadenada
 

@@ -28,14 +28,10 @@ import os
 import csv
 import datetime
 from DataStructures.Tree import binary_search_tree as bst
-# TODO Realice la importación del Árbol Binario Ordenado
-# TODO Realice la importación de ArrayList (al) como estructura de datos auxiliar para sus requerimientos
-# TODO Realice la importación de LinearProbing (lp) como estructura de datos auxiliar para sus requerimientos
-
+from DataStructures.List import array_list as al
+from DataStructures.Map import map_linear_probing as lp
 
 data_dir = os.path.dirname(os.path.realpath('__file__')) + '/Data/'
-
-
 
 def new_logic():
     """ Inicializa el analizador
@@ -51,8 +47,7 @@ def new_logic():
                 }
 
     analyzer['crimes'] = al.new_list()
-    # TODO completar la creación del mapa ordenado
-    analyzer['dateIndex'] = None
+    analyzer['dateIndex'] = lp.new_map()
     
     return analyzer
 
@@ -96,8 +91,9 @@ def update_date_index(map, crime):
     crimedate = datetime.datetime.strptime(occurreddate, '%Y-%m-%d %H:%M:%S')
     entry = bst.get(map, crimedate.date())
     if entry is None:
-        # TODO Realizar el caso en el que no se encuentra la fecha
-        pass
+        datentry = {'date': crimedate, 'lstcrimes': al.new_list()}
+        al.add_last(datentry['lstcrimes'], crime)
+        bst.put(map, crimedate, datentry)
     else:
         datentry = entry
     add_date_index(datentry, crime)
@@ -116,11 +112,12 @@ def add_date_index(datentry, crime):
     offenseIndex = datentry['offenseIndex']
     offentry = lp.get(offenseIndex, crime['OFFENSE_CODE_GROUP'])
     if (offentry is None):
-        # TODO Realice el caso en el que no se encuentre el tipo de crimen
-        pass
+        new_offentry = al.new_list()
+        al.add_last(new_offentry, crime)
+        lp.put(offenseIndex, crime['OFFENSE_CODE_GROUP'], new_offentry)
     else:
-        # TODO Realice el caso en el que se encuentre el tipo de crimen
-        pass
+        al.add_last(offentry, crime)
+        
     return datentry
 
 
@@ -164,7 +161,7 @@ def index_height(analyzer):
     Altura del arbol
     """
     # TODO Completar la función de consulta de altura del árbol
-    pass
+    return bst.height(analyzer['dateIndex'])
 
 
 def index_size(analyzer):
@@ -172,7 +169,7 @@ def index_size(analyzer):
     Numero de elementos en el indice
     """
     # TODO Completar la función de consulta de tamaño del árbol
-    pass
+    return bst.size(analyzer['dateIndex'])
 
 
 def min_key(analyzer):
@@ -180,7 +177,7 @@ def min_key(analyzer):
     Llave mas pequena
     """
     # TODO Completar la función de consulta de la llave mínima
-    pass
+    return bst.get_min(analyzer['dateIndex'])
 
 
 def max_key(analyzer):
@@ -188,7 +185,7 @@ def max_key(analyzer):
     Llave mas grande
     """
     # TODO Completar la función de consulta de la llave máxima
-    pass
+    return bst.get_max(analyzer['dateIndex'])
 
 
 def get_crimes_by_range(analyzer, initialDate, finalDate):
@@ -196,7 +193,16 @@ def get_crimes_by_range(analyzer, initialDate, finalDate):
     Retorna el numero de crimenes en un rago de fechas.
     """
     # TODO Completar la función de consulta de crimenes por rango de fechas
-    pass
+    lst = al.new_list()
+    keys = bst.keys_range(analyzer['dateIndex'], initialDate, finalDate)
+
+    for i in range(1, al.size(keys) + 1):
+        key = al.get_element(keys, i)
+        entry = bst.get(analyzer['dateIndex'], key)
+        crimes = entry['lstcrimes']
+        for j in range(1, al.size(crimes) + 1):
+            al.add_last(lst, al.get_element(crimes, j))
+    return lst
 
 
 def get_crimes_by_range_code(analyzer, initialDate, offensecode):
@@ -205,4 +211,11 @@ def get_crimes_by_range_code(analyzer, initialDate, offensecode):
     de un tipo especifico.
     """
     # TODO Completar la función de consulta de crimenes por tipo de crimen en una fecha
-    pass
+    entry = bst.get(analyzer['dateIndex'], initialDate)
+    if entry is None:
+        return 0
+    offenseIndex = entry['offenseIndex']
+    crimes = lp.get(offenseIndex, offensecode)
+    if crimes is None:
+        return 0
+    return al.size(crimes)
