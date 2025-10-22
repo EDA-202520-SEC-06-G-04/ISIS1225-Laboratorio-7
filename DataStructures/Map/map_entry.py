@@ -1,7 +1,3 @@
-"""
-  Estructura que contiene la información a guardar en una ``entry`` de un Map
-"""
-
 def new_map_entry(key, value):
     """ Retorna una pareja llave valor para ser guardada en un Map
 
